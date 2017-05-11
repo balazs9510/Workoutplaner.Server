@@ -6,6 +6,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
 using Workoutplaner.Server.Context;
 using Workoutplaner.Server.Services;
+using Workoutplaner.Server.Middlewares;
+using Microsoft.AspNetCore.Http;
 
 namespace Workoutplaner.Server
 {
@@ -27,6 +29,8 @@ namespace Workoutplaner.Server
                  options.UseSqlServer(connectionString));
             services.AddTransient<IExerciseService, ExerciseService>();
             services.AddTransient<IDailyWorkoutService, DailyWorkoutService>();
+            services.AddTransient<IWeeklyWorkoutService, WeeklyWorkoutService>();
+            services.AddTransient<IMonthlyWorkoutService, MonthlyWorkoutService>();
             services.AddMvc();
            
         }
@@ -45,7 +49,12 @@ namespace Workoutplaner.Server
             {
                 app.UseExceptionHandler("/Home/Error");
             }
+            app.UseWhen(
+                ctx => ctx.Request.Path.HasValue && ctx.Request.Path.StartsWithSegments(new PathString("/api")),
+                b => b.UseMiddleware<ApiExceptionHandlerMiddleware>());
+
             app.UseStaticFiles();
+
             app.UseMvc(routes =>
             {
                 routes.MapRoute(

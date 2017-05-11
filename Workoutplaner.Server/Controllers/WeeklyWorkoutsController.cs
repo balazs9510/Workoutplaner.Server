@@ -11,36 +11,36 @@ using Workoutplaner.Server.Exceptions;
 namespace Workoutplaner.Server.Controllers
 {
     [Produces("application/json")]
-    [Route("api/DailyWorkouts")]
-    public class DailyWorkoutsController : Controller
+    [Route("api/WeeklyWorkouts")]
+    public class WeeklyWorkoutsController : Controller
     {
-        private readonly IDailyWorkoutService _dailyWorkoutService;
-        public DailyWorkoutsController(IDailyWorkoutService dailyWorkotuService)
+        private readonly IWeeklyWorkoutService _weeklyWorkoutService;
+
+        public WeeklyWorkoutsController(IWeeklyWorkoutService weeklyWorkoutService)
         {
-            _dailyWorkoutService = dailyWorkotuService;
+            _weeklyWorkoutService = weeklyWorkoutService;
         }
         [HttpGet]
         public IActionResult Get()
         {
-            return Ok(_dailyWorkoutService.GetDailyWorkouts());
+            return Ok(_weeklyWorkoutService.GetWeeklyWorkouts());
         }
-
         [HttpGet("{id}")]
         public IActionResult GetDailyWorkout(int id)
         {
-            return Ok(_dailyWorkoutService.GetDailyWorkout(id));
+            return Ok(_weeklyWorkoutService.GetWeeklyWorkout(id));
         }
         [HttpPost]
-        public IActionResult Post([FromBody]DailyWorkout dailyWorkout)
+        public IActionResult Post([FromBody]WeeklyWorkout weeklyWorkout)
         {
-            var created = _dailyWorkoutService.InsertDailyWorkout(dailyWorkout);
+            var created = _weeklyWorkoutService.InsertWeeklyWorkout(weeklyWorkout);
             return CreatedAtAction(nameof(Get), new { created.Id }, created);
         }
 
         [HttpPut("{id}")]
-        public IActionResult Put(int id, [FromBody] DailyWorkout dailyWorkout)
+        public IActionResult Put(int id, [FromBody] WeeklyWorkout weeklyWorkout)
         {
-            _dailyWorkoutService.UpdateDailyWorkout(id, dailyWorkout);
+            _weeklyWorkoutService.UpdateWeeklyWorkout(id, weeklyWorkout);
             return NoContent();
         }
 
@@ -49,13 +49,12 @@ namespace Workoutplaner.Server.Controllers
         {
             try
             {
-                _dailyWorkoutService.DeleteDailyWorkout(id);
+                _weeklyWorkoutService.DeleteWeeklyWorkout(id);
             }
             catch (EntityCannotDeleteException)
             {
                 return BadRequest();
             }
-            
             return NoContent();
         }
     }

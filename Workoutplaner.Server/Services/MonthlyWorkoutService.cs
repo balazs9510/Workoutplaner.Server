@@ -38,9 +38,20 @@ namespace Workoutplaner.Server.Services
 
         public MonthlyWorkout InsertMonthlyWorkout(MonthlyWorkout newMonthlyWorkout)
         {
-            newMonthlyWorkout.Id = _context.MonthlyWorkouts.Max(p => p.Id) + 1;
+            var saveInstance = new MonthlyWorkout()
+            {
+                Name = newMonthlyWorkout.Name
+            };
+            saveInstance.WeekOne = _context.WeeklyWorkouts
+                .Where(w => w.Id == newMonthlyWorkout.WeekOne.Id).SingleOrDefault();
+            saveInstance.WeekTwo = _context.WeeklyWorkouts
+                .Where(w => w.Id == newMonthlyWorkout.WeekTwo.Id).SingleOrDefault();
+            saveInstance.WeekThree = _context.WeeklyWorkouts
+                .Where(w => w.Id == newMonthlyWorkout.WeekThree.Id).SingleOrDefault();
+            saveInstance.WeekFour = _context.WeeklyWorkouts
+                .Where(w => w.Id == newMonthlyWorkout.WeekFour.Id).SingleOrDefault();
 
-            _context.MonthlyWorkouts.Add(newMonthlyWorkout);
+            _context.MonthlyWorkouts.Add(saveInstance);
 
             _context.SaveChanges();
 
@@ -50,8 +61,8 @@ namespace Workoutplaner.Server.Services
         public void UpdateMonthlyWorkout(int id, MonthlyWorkout updatedMonthlyWorkout)
         {
             updatedMonthlyWorkout.Id = id;
-            var entry = _context.Attach(updatedMonthlyWorkout);
-            entry.State = EntityState.Modified;
+
+            _context.Entry(updatedMonthlyWorkout).State = EntityState.Modified;
             updatedMonthlyWorkout.WeekOne = _context.WeeklyWorkouts
                  .Where(w => w.Id == updatedMonthlyWorkout.WeekOne.Id).SingleOrDefault();
             updatedMonthlyWorkout.WeekTwo = _context.WeeklyWorkouts
@@ -76,7 +87,7 @@ namespace Workoutplaner.Server.Services
         public void DeleteMonthlyWorkout(int id)
         {
            
-             _context.MonthlyWorkouts.Remove(new MonthlyWorkout { Id = id });
+             _context.MonthlyWorkouts.Remove(_context.MonthlyWorkouts.SingleOrDefault(p=>p.Id==id));
 
             try
             {

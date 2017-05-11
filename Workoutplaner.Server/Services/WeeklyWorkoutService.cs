@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Workoutplaner.Server.Context;
+using Workoutplaner.Server.Exceptions;
 using Workoutplaner.Server.Models;
 
 namespace Workoutplaner.Server.Services
@@ -46,10 +47,28 @@ namespace Workoutplaner.Server.Services
 
         public WeeklyWorkout InsertWeeklyWorkout(WeeklyWorkout newWeeklyWorkout)
         {
-            newWeeklyWorkout.Id = _context.WeeklyWorkouts.Max(p => p.Id) + 1;
+            var toSave = new WeeklyWorkout()
+            {
+                Name =newWeeklyWorkout.Name,
 
-            _context.WeeklyWorkouts.Add(newWeeklyWorkout);
+                WorkoutType = Models.Type.Weekly
+            };
 
+            _context.WeeklyWorkouts.Add(toSave);
+            toSave.DayOne = _context.DailyWorkouts
+                .Where(m => m.Id ==newWeeklyWorkout.DayOne.Id).SingleOrDefault();
+            toSave.DayTwo = _context.DailyWorkouts
+                .Where(m => m.Id ==newWeeklyWorkout.DayTwo.Id).SingleOrDefault();
+            toSave.DayThree = _context.DailyWorkouts
+                .Where(m => m.Id ==newWeeklyWorkout.DayThree.Id).SingleOrDefault();
+            toSave.DayFour = _context.DailyWorkouts
+                .Where(m => m.Id ==newWeeklyWorkout.DayFour.Id).SingleOrDefault();
+            toSave.DayFive = _context.DailyWorkouts
+                .Where(m => m.Id ==newWeeklyWorkout.DayFive.Id).SingleOrDefault();
+            toSave.DaySix = _context.DailyWorkouts
+                .Where(m => m.Id ==newWeeklyWorkout.DaySix.Id).SingleOrDefault();
+            toSave.DaySeven = _context.DailyWorkouts
+                .Where(m => m.Id ==newWeeklyWorkout.DaySeven.Id).SingleOrDefault();
             _context.SaveChanges();
 
             return newWeeklyWorkout;
@@ -57,25 +76,18 @@ namespace Workoutplaner.Server.Services
 
         public void UpdateWeeklyWorkout(int id, WeeklyWorkout updatedWeeklyWorkout)
         {
-            updatedWeeklyWorkout.Id = id;
-            var entry = _context.Attach(updatedWeeklyWorkout);
-            entry.State = EntityState.Modified;
+            
+            _context.Entry(updatedWeeklyWorkout).State = EntityState.Modified;
             var saveInstace = _context.WeeklyWorkouts.SingleOrDefault(m => m.Id == updatedWeeklyWorkout.Id);
 
             saveInstace
-                .DayOne = updatedWeeklyWorkout.DayOne;
-            saveInstace
-                .DayTwo = updatedWeeklyWorkout.DayTwo;
-            saveInstace
-                .DayThree = updatedWeeklyWorkout.DayThree;
-            saveInstace
-                .DayFour = updatedWeeklyWorkout.DayFour;
-            saveInstace
-                .DayFive = updatedWeeklyWorkout.DayFive;
-            saveInstace
-                .DaySix = updatedWeeklyWorkout.DaySix;
-            saveInstace
-                .DaySeven = updatedWeeklyWorkout.DaySeven;
+                .DayOne = _context.DailyWorkouts.SingleOrDefault(p=>p.Id == updatedWeeklyWorkout.DayOne.Id);
+            saveInstace.DayTwo =   _context.DailyWorkouts.SingleOrDefault(p=>p.Id == updatedWeeklyWorkout.DayTwo.Id);
+            saveInstace.DayThree = _context.DailyWorkouts.SingleOrDefault(p=>p.Id == updatedWeeklyWorkout.DayThree.Id);
+            saveInstace.DayFour =  _context.DailyWorkouts.SingleOrDefault(p=>p.Id == updatedWeeklyWorkout.DayFour.Id);
+            saveInstace.DayFive =  _context.DailyWorkouts.SingleOrDefault(p=>p.Id == updatedWeeklyWorkout.DayFive.Id);
+            saveInstace.DaySix =   _context.DailyWorkouts.SingleOrDefault(p=>p.Id == updatedWeeklyWorkout.DaySix.Id);
+            saveInstace.DaySeven = _context.DailyWorkouts.SingleOrDefault(p => p.Id == updatedWeeklyWorkout.DaySeven.Id);
             try
             {
                 _context.SaveChanges();
@@ -97,9 +109,11 @@ namespace Workoutplaner.Server.Services
                (w.WeekOne.Id == weeklyWorkout.Id ||
                w.WeekTwo.Id == weeklyWorkout.Id ||
                w.WeekThree.Id == weeklyWorkout.Id ||
-               w.WeekFour.Id == weeklyWorkout.Id)).SingleOrDefault();
+               w.WeekFour.Id == weeklyWorkout.Id)).FirstOrDefault();
             if (montlyWorkout == null)
-                _context.WeeklyWorkouts.Remove(new WeeklyWorkout { Id = id });
+                _context.WeeklyWorkouts.Remove(_context.WeeklyWorkouts.SingleOrDefault(w => w.Id == id));
+            else
+                throw new EntityCannotDeleteException();
 
             try
             {
@@ -112,6 +126,8 @@ namespace Workoutplaner.Server.Services
 
                 throw;
             }
+           
+           
         }
     }
 }

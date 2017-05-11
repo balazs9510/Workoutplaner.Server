@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Workoutplaner.Server.Context;
 using Workoutplaner.Server.Models;
+using Workoutplaner.Server.Exceptions;
 
 namespace Workoutplaner.Server.Services
 {
@@ -99,8 +100,27 @@ namespace Workoutplaner.Server.Services
         }
         public void DeleteDailyWorkout(int id)
         {
-            _context.DailyWorkouts.Remove(new DailyWorkout { Id = id });
-
+            var weeklyWorkout =  _context.WeeklyWorkouts.Where(
+                w => (w.DayOne.Id == id ||
+                w.DayTwo.Id == id ||
+                w.DayThree.Id == id ||
+                w.DayFour.Id == id ||
+                w.DayFive.Id == id ||
+                w.DaySix.Id == id ||
+                w.DaySeven.Id == id
+                )).FirstOrDefault();
+            if (weeklyWorkout == null)
+            {
+                var deleteInstance = _context.DailyWorkouts
+                    .Include(p=>p.Exercises)
+                    .SingleOrDefault(p => p.Id == id);
+                foreach (var exerciseItem in deleteInstance.Exercises)
+                {
+                    _context.ExerciseItems.Remove(exerciseItem);
+                }
+                _context.DailyWorkouts.Remove(deleteInstance);
+            }
+            else throw new EntityCannotDeleteException();
             try
             {
                 _context.SaveChanges();
@@ -113,5 +133,7 @@ namespace Workoutplaner.Server.Services
                 throw;
             }
         }
+
+       
     }
 }
