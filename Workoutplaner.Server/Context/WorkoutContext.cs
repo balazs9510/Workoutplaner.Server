@@ -2,10 +2,12 @@
 using Workoutplaner.Server.Models;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Workoutplaner.Server.Models.Identity;
 
 namespace Workoutplaner.Server.Context
 {
-    public class WorkoutContext : DbContext
+    public class WorkoutContext : IdentityDbContext<ApplicationUser>
     {
         public WorkoutContext(DbContextOptions<WorkoutContext> options) : base(options)
         {

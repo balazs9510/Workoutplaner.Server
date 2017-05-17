@@ -7,33 +7,45 @@ using Microsoft.AspNetCore.Mvc;
 using Workoutplaner.Server.Services;
 using Workoutplaner.Server.Models;
 using Workoutplaner.Server.Exceptions;
+using Microsoft.AspNetCore.Identity;
+using Workoutplaner.Server.Models.Identity;
+using System.Security.Claims;
+using Workoutplaner.Server.Context;
 
 namespace Workoutplaner.Server.Controllers
 {
     [Produces("application/json")]
     [Route("api/DailyWorkouts")]
-    public class DailyWorkoutsController : Controller
+    public class DailyWorkoutsController : BaseController
     {
         private readonly IDailyWorkoutService _dailyWorkoutService;
-        public DailyWorkoutsController(IDailyWorkoutService dailyWorkotuService)
+        
+        public DailyWorkoutsController(IDailyWorkoutService dailyWorkotuService,
+            UserManager<ApplicationUser> userManager,
+            IHttpContextAccessor accessor,
+            WorkoutContext cotnext)
+            :base(userManager,accessor,cotnext)
         {
             _dailyWorkoutService = dailyWorkotuService;
+                       
         }
+
         [HttpGet]
         public IActionResult Get()
         {
-            return Ok(_dailyWorkoutService.GetDailyWorkouts());
+            
+            return Ok(_dailyWorkoutService.GetDailyWorkouts(_user));
         }
 
         [HttpGet("{id}")]
         public IActionResult GetDailyWorkout(int id)
         {
-            return Ok(_dailyWorkoutService.GetDailyWorkout(id));
+            return Ok(_dailyWorkoutService.GetDailyWorkout(id,_user));
         }
         [HttpPost]
         public IActionResult Post([FromBody]DailyWorkout dailyWorkout)
         {
-            var created = _dailyWorkoutService.InsertDailyWorkout(dailyWorkout);
+            var created = _dailyWorkoutService.InsertDailyWorkout(dailyWorkout,_user);
             return CreatedAtAction(nameof(Get), new { created.Id }, created);
         }
 
@@ -49,7 +61,7 @@ namespace Workoutplaner.Server.Controllers
         {
             try
             {
-                _dailyWorkoutService.DeleteDailyWorkout(id);
+                _dailyWorkoutService.DeleteDailyWorkout(id,_user);
             }
             catch (EntityCannotDeleteException)
             {

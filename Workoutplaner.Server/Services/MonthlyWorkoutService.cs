@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Workoutplaner.Server.Context;
 using Workoutplaner.Server.Models;
+using Workoutplaner.Server.Models.Identity;
 
 namespace Workoutplaner.Server.Services
 {
@@ -16,7 +17,7 @@ namespace Workoutplaner.Server.Services
             _context = context;
         }
 
-        public MonthlyWorkout GetMonthlyWorkout(int id)
+        public MonthlyWorkout GetMonthlyWorkout(int id, ApplicationUser user)
         {
             return _context.MonthlyWorkouts
                 .Include(m => m.WeekOne)
@@ -26,17 +27,19 @@ namespace Workoutplaner.Server.Services
                 .SingleOrDefault(dw => dw.Id == id) ?? throw new EntityNotFoundException("Nem található az edzés");
         }
 
-        public IEnumerable<MonthlyWorkout> GetMonthlyWorkouts()
+        public IEnumerable<MonthlyWorkout> GetMonthlyWorkouts(ApplicationUser user)
         {
             return _context.MonthlyWorkouts
                 .Include(m => m.WeekOne)
                 .Include(m => m.WeekTwo)
                 .Include(m => m.WeekThree)
                 .Include(m => m.WeekFour)
+                .Where(m=> m.UserID.Equals(user.Id))
                 .ToList();
         }
 
-        public MonthlyWorkout InsertMonthlyWorkout(MonthlyWorkout newMonthlyWorkout)
+        public MonthlyWorkout InsertMonthlyWorkout(MonthlyWorkout newMonthlyWorkout,
+            ApplicationUser user)
         {
             var saveInstance = new MonthlyWorkout()
             {
@@ -50,7 +53,8 @@ namespace Workoutplaner.Server.Services
                 .Where(w => w.Id == newMonthlyWorkout.WeekThree.Id).SingleOrDefault();
             saveInstance.WeekFour = _context.WeeklyWorkouts
                 .Where(w => w.Id == newMonthlyWorkout.WeekFour.Id).SingleOrDefault();
-
+            saveInstance.UserID = user.Id;
+            user.MonthlyWorkouts.Add(saveInstance);
             _context.MonthlyWorkouts.Add(saveInstance);
 
             _context.SaveChanges();
@@ -84,10 +88,11 @@ namespace Workoutplaner.Server.Services
                 throw;
             }
         }
-        public void DeleteMonthlyWorkout(int id)
+        public void DeleteMonthlyWorkout(int id, ApplicationUser user)
         {
-           
-             _context.MonthlyWorkouts.Remove(_context.MonthlyWorkouts.SingleOrDefault(p=>p.Id==id));
+            var toDelete = _context.MonthlyWorkouts.SingleOrDefault(p => p.Id == id);
+            user.MonthlyWorkouts.Remove(toDelete);
+             _context.MonthlyWorkouts.Remove(toDelete);
 
             try
             {

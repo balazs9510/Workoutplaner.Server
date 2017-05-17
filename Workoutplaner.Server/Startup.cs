@@ -8,11 +8,14 @@ using Workoutplaner.Server.Context;
 using Workoutplaner.Server.Services;
 using Workoutplaner.Server.Middlewares;
 using Microsoft.AspNetCore.Http;
+using Workoutplaner.Server.Models.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using System;
 
 namespace Workoutplaner.Server
 {
     public class Startup
-    {        
+    {
         public Startup(IHostingEnvironment env)
         {
             var builder = new ConfigurationBuilder()
@@ -27,16 +30,44 @@ namespace Workoutplaner.Server
             var connectionString = Configuration.GetConnectionString("DefaultConnection");
             services.AddDbContext<WorkoutContext>(options =>
                  options.UseSqlServer(connectionString));
+            services.AddTransient<IUserService, UserService>();
             services.AddTransient<IExerciseService, ExerciseService>();
             services.AddTransient<IDailyWorkoutService, DailyWorkoutService>();
             services.AddTransient<IWeeklyWorkoutService, WeeklyWorkoutService>();
             services.AddTransient<IMonthlyWorkoutService, MonthlyWorkoutService>();
+            
+
+            services.AddIdentity<ApplicationUser, IdentityRole>()
+                .AddEntityFrameworkStores<WorkoutContext>()
+                .AddDefaultTokenProviders();
+            services.Configure<IdentityOptions>(options =>
+            {
+                // Password settings
+                options.Password.RequireDigit = false;
+                options.Password.RequiredLength = 6;
+                options.Password.RequireNonAlphanumeric = false;
+                options.Password.RequireUppercase = false;
+                options.Password.RequireLowercase = false;
+
+                // Lockout settings
+                options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(30);
+                options.Lockout.MaxFailedAccessAttempts = 10;
+
+                // Cookie settings
+                options.Cookies.ApplicationCookie.ExpireTimeSpan = TimeSpan.FromDays(150);
+                options.Cookies.ApplicationCookie.LoginPath = "/Account/Login";
+                options.Cookies.ApplicationCookie.LogoutPath = "/Account/LogOut";
+
+                // User settings
+                options.User.RequireUniqueEmail = true;
+            });
+            
             services.AddMvc();
-           
+
         }
 
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, 
-            ILoggerFactory loggerFactory,WorkoutContext context)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env,
+            ILoggerFactory loggerFactory, WorkoutContext context)
         {
             loggerFactory.AddConsole();
 
@@ -55,6 +86,8 @@ namespace Workoutplaner.Server
 
             app.UseStaticFiles();
 
+            app.UseIdentity();
+            
             app.UseMvc(routes =>
             {
                 routes.MapRoute(

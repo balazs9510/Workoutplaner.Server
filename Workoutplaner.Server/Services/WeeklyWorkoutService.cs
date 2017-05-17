@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Workoutplaner.Server.Context;
 using Workoutplaner.Server.Exceptions;
 using Workoutplaner.Server.Models;
+using Workoutplaner.Server.Models.Identity;
 
 namespace Workoutplaner.Server.Services
 {
@@ -17,8 +18,9 @@ namespace Workoutplaner.Server.Services
             _context = context;
         }
 
-        public WeeklyWorkout GetWeeklyWorkout(int id)
+        public WeeklyWorkout GetWeeklyWorkout(int id, ApplicationUser user)
         {
+            
             return _context.WeeklyWorkouts
                 .Include(d => d.DayOne)
                 .Include(d => d.DayOne)
@@ -31,7 +33,7 @@ namespace Workoutplaner.Server.Services
                 .SingleOrDefault(dw => dw.Id == id) ?? throw new EntityNotFoundException("Nem található az edzés");
         }
 
-        public IEnumerable<WeeklyWorkout> GetWeeklyWorkouts()
+        public IEnumerable<WeeklyWorkout> GetWeeklyWorkouts(ApplicationUser user)
         {
             return _context.WeeklyWorkouts
                 .Include(d => d.DayOne)
@@ -42,10 +44,11 @@ namespace Workoutplaner.Server.Services
                 .Include(d => d.DayFive)
                 .Include(d => d.DaySix)
                 .Include(d => d.DaySeven)
+                .Where(d=>d.UserID.Equals(user.Id))
                 .ToList();
         }
 
-        public WeeklyWorkout InsertWeeklyWorkout(WeeklyWorkout newWeeklyWorkout)
+        public WeeklyWorkout InsertWeeklyWorkout(WeeklyWorkout newWeeklyWorkout, ApplicationUser user)
         {
             var toSave = new WeeklyWorkout()
             {
@@ -53,7 +56,8 @@ namespace Workoutplaner.Server.Services
 
                 WorkoutType = Models.Type.Weekly
             };
-
+            toSave.UserID = user.Id;
+            user.WeeklyWorkouts.Add(toSave);
             _context.WeeklyWorkouts.Add(toSave);
             toSave.DayOne = _context.DailyWorkouts
                 .Where(m => m.Id ==newWeeklyWorkout.DayOne.Id).SingleOrDefault();
@@ -69,12 +73,14 @@ namespace Workoutplaner.Server.Services
                 .Where(m => m.Id ==newWeeklyWorkout.DaySix.Id).SingleOrDefault();
             toSave.DaySeven = _context.DailyWorkouts
                 .Where(m => m.Id ==newWeeklyWorkout.DaySeven.Id).SingleOrDefault();
+
             _context.SaveChanges();
 
             return newWeeklyWorkout;
         }
 
-        public void UpdateWeeklyWorkout(int id, WeeklyWorkout updatedWeeklyWorkout)
+        public void UpdateWeeklyWorkout(int id,
+            WeeklyWorkout updatedWeeklyWorkout)
         {
             
             _context.Entry(updatedWeeklyWorkout).State = EntityState.Modified;
@@ -101,7 +107,7 @@ namespace Workoutplaner.Server.Services
                 throw;
             }
         }
-        public void DeleteWeeklyWorkout(int id)
+        public void DeleteWeeklyWorkout(int id,ApplicationUser user)
         {
             var weeklyWorkout = _context.WeeklyWorkouts
                 .SingleOrDefault(m => m.Id == id);
@@ -111,7 +117,12 @@ namespace Workoutplaner.Server.Services
                w.WeekThree.Id == weeklyWorkout.Id ||
                w.WeekFour.Id == weeklyWorkout.Id)).FirstOrDefault();
             if (montlyWorkout == null)
-                _context.WeeklyWorkouts.Remove(_context.WeeklyWorkouts.SingleOrDefault(w => w.Id == id));
+            {
+                var toDelete = _context.WeeklyWorkouts.SingleOrDefault(w => w.Id == id);
+                user.WeeklyWorkouts.Remove(toDelete);
+                _context.WeeklyWorkouts.Remove(toDelete);
+
+            }
             else
                 throw new EntityCannotDeleteException();
 

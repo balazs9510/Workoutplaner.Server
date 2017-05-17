@@ -7,33 +7,39 @@ using Microsoft.AspNetCore.Mvc;
 using Workoutplaner.Server.Services;
 using Workoutplaner.Server.Models;
 using Workoutplaner.Server.Exceptions;
+using Microsoft.AspNetCore.Identity;
+using Workoutplaner.Server.Models.Identity;
+using Workoutplaner.Server.Context;
 
 namespace Workoutplaner.Server.Controllers
 {
     [Produces("application/json")]
     [Route("api/WeeklyWorkouts")]
-    public class WeeklyWorkoutsController : Controller
+    public class WeeklyWorkoutsController : BaseController
     {
         private readonly IWeeklyWorkoutService _weeklyWorkoutService;
 
-        public WeeklyWorkoutsController(IWeeklyWorkoutService weeklyWorkoutService)
+        public WeeklyWorkoutsController(IWeeklyWorkoutService weeklyWorkoutService, UserManager<ApplicationUser> userManager,
+            IHttpContextAccessor accessor,
+            WorkoutContext context)
+            :base(userManager,accessor,context)
         {
             _weeklyWorkoutService = weeklyWorkoutService;
         }
         [HttpGet]
         public IActionResult Get()
         {
-            return Ok(_weeklyWorkoutService.GetWeeklyWorkouts());
+            return Ok(_weeklyWorkoutService.GetWeeklyWorkouts(_user));
         }
         [HttpGet("{id}")]
         public IActionResult GetDailyWorkout(int id)
         {
-            return Ok(_weeklyWorkoutService.GetWeeklyWorkout(id));
+            return Ok(_weeklyWorkoutService.GetWeeklyWorkout(id, _user));
         }
         [HttpPost]
         public IActionResult Post([FromBody]WeeklyWorkout weeklyWorkout)
         {
-            var created = _weeklyWorkoutService.InsertWeeklyWorkout(weeklyWorkout);
+            var created = _weeklyWorkoutService.InsertWeeklyWorkout(weeklyWorkout, _user);
             return CreatedAtAction(nameof(Get), new { created.Id }, created);
         }
 
@@ -49,7 +55,7 @@ namespace Workoutplaner.Server.Controllers
         {
             try
             {
-                _weeklyWorkoutService.DeleteWeeklyWorkout(id);
+                _weeklyWorkoutService.DeleteWeeklyWorkout(id, _user);
             }
             catch (EntityCannotDeleteException)
             {

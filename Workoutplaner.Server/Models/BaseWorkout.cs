@@ -16,6 +16,7 @@ namespace Workoutplaner.Server.Models
         public int Id { get; set; }
         public string Name { get; set; }
         public Type WorkoutType { get; set; }
+        public string UserID { get; set; }
 
     }
 }

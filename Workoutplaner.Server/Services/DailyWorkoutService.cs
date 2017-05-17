@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Workoutplaner.Server.Context;
 using Workoutplaner.Server.Models;
 using Workoutplaner.Server.Exceptions;
+using Workoutplaner.Server.Models.Identity;
 
 namespace Workoutplaner.Server.Services
 {
@@ -16,21 +17,23 @@ namespace Workoutplaner.Server.Services
             _context = context;
         }
 
-        public DailyWorkout GetDailyWorkout(int id)
+        public DailyWorkout GetDailyWorkout(int id,ApplicationUser user)
         {
             return _context.DailyWorkouts
+                
                 .Include(dw => dw.Exercises)
                 .SingleOrDefault(dw => dw.Id == id) ?? throw new EntityNotFoundException("Nem található az edzés");
         }
 
-        public IEnumerable<DailyWorkout> GetDailyWorkouts()
+        public IEnumerable<DailyWorkout> GetDailyWorkouts(ApplicationUser user)
         {
             return _context.DailyWorkouts
                 .Include(dw => dw.Exercises)
+                .Where(u=> u.UserID.Equals(user.Id))
                 .ToList();
         }
 
-        public DailyWorkout InsertDailyWorkout(DailyWorkout newDailyWorkout)
+        public DailyWorkout InsertDailyWorkout(DailyWorkout newDailyWorkout, ApplicationUser user)
         {
             List<ExerciseItem> exercises = new List<ExerciseItem>();
             foreach (var exercise in newDailyWorkout.Exercises)
@@ -52,7 +55,8 @@ namespace Workoutplaner.Server.Services
                 WorkoutType = newDailyWorkout.WorkoutType,
                 Exercises = exercises
             };
-           
+            savedInstance.UserID = user.Id;
+            user.DailyWorkouts.Add(savedInstance);
             _context.DailyWorkouts.Add(savedInstance);
 
             _context.SaveChanges();
@@ -98,7 +102,7 @@ namespace Workoutplaner.Server.Services
                 throw;
             }
         }
-        public void DeleteDailyWorkout(int id)
+        public void DeleteDailyWorkout(int id, ApplicationUser user)
         {
             var weeklyWorkout =  _context.WeeklyWorkouts.Where(
                 w => (w.DayOne.Id == id ||
@@ -118,6 +122,7 @@ namespace Workoutplaner.Server.Services
                 {
                     _context.ExerciseItems.Remove(exerciseItem);
                 }
+                user.DailyWorkouts.Remove(deleteInstance);
                 _context.DailyWorkouts.Remove(deleteInstance);
             }
             else throw new EntityCannotDeleteException();
