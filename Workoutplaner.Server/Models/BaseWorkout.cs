@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -13,7 +14,8 @@ namespace Workoutplaner.Server.Models
     }
     public abstract class BaseWorkout
     {
-        public int Id { get; set; }
+        
+        public int Id  { get; set; }
         public string Name { get; set; }
         public Type WorkoutType { get; set; }
         public string UserID { get; set; }

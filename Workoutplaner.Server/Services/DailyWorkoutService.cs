@@ -66,9 +66,6 @@ namespace Workoutplaner.Server.Services
 
         public void UpdateDailyWorkout(int id, DailyWorkout updatedDailyWorkout)
         {
-            updatedDailyWorkout.Id = id;
-            var entry = _context.Attach(updatedDailyWorkout);
-            entry.State = EntityState.Modified;
             var current = _context.DailyWorkouts.SingleOrDefault(m => m.Id == updatedDailyWorkout.Id);
             foreach (var exercise in updatedDailyWorkout.Exercises.ToList())
             {
@@ -88,7 +85,7 @@ namespace Workoutplaner.Server.Services
                     current.Exercises.Add(newElem);
                 }
             }
-
+            current.Name = updatedDailyWorkout.Name;
             try
             {
                 _context.SaveChanges();

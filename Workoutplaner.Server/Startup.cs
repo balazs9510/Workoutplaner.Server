@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.EntityFrameworkCore;
 using Workoutplaner.Server.Context;
 using Workoutplaner.Server.Services;
 using Workoutplaner.Server.Middlewares;
@@ -27,9 +26,8 @@ namespace Workoutplaner.Server
         public IConfigurationRoot Configuration { get; }
         public void ConfigureServices(IServiceCollection services)
         {
-            var connectionString = Configuration.GetConnectionString("DefaultConnection");
-            services.AddDbContext<WorkoutContext>(options =>
-                 options.UseSqlServer(connectionString));
+            var connectionString = Configuration.GetConnectionString("DataAccessMySqlProvider");
+            services.AddDbContext<WorkoutContext>();
             services.AddTransient<IUserService, UserService>();
             services.AddTransient<IExerciseService, ExerciseService>();
             services.AddTransient<IDailyWorkoutService, DailyWorkoutService>();

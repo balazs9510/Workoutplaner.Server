@@ -13,13 +13,27 @@ namespace Workoutplaner.Server.Context
         {
 
         }
-        
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+            //modelBuilder.Entity<Exercise>().HasKey(e=>e.Id);
+            modelBuilder.Entity<Exercise>().Property(e => e.Id)
+                .ForSqlServerUseSequenceHiLo();
+            //modelBuilder.Entity<Exercise>().Property(e => e.Id).UseSqlServerIdentityColumn();
+            //modelBuilder.Entity<DailyWorkout>().HasKey(e => e.Id);
+            //modelBuilder.Entity<DailyWorkout>().Property(e => e.Id).HasDefaultValue(1);
+            //modelBuilder.Entity<WeeklyWorkout>().HasKey(e => e.Id);
+            //modelBuilder.Entity<WeeklyWorkout>().Property(e => e.Id).HasDefaultValue(1);
+            //modelBuilder.Entity<MonthlyWorkout>().HasKey(e => e.Id);
+            //modelBuilder.Entity<MonthlyWorkout>().Property(e => e.Id).HasDefaultValue(1);
 
         }
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+            => optionsBuilder
+                .UseMySql(@"Server=localhost;database=Workout;uid=root;pwd=root;");
+        
         public DbSet<Exercise> Exercises { get; set; }
         public DbSet<ExerciseItem> ExerciseItems { get; set; }
         public DbSet<DailyWorkout> DailyWorkouts { get; set; }
