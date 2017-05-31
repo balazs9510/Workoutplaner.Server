@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore;
 using Workoutplaner.Server.Context;
 using Workoutplaner.Server.Services;
 using Workoutplaner.Server.Middlewares;
@@ -10,6 +11,8 @@ using Microsoft.AspNetCore.Http;
 using Workoutplaner.Server.Models.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using System;
+using Microsoft.AspNetCore.Mvc.Versioning;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Workoutplaner.Server
 {
@@ -26,14 +29,24 @@ namespace Workoutplaner.Server
         public IConfigurationRoot Configuration { get; }
         public void ConfigureServices(IServiceCollection services)
         {
-            var connectionString = Configuration.GetConnectionString("DataAccessMySqlProvider");
-            services.AddDbContext<WorkoutContext>();
+            var connectionString = Configuration.GetConnectionString("DefaultConnection");
+            services.AddDbContext<WorkoutContext>(
+                options=> options.UseMySql(@"Server=localhost;database=Workout;uid=root;pwd=root;"));
+            services.AddDbContext<ExerciseContext>(options=>
+                options.UseSqlServer(connectionString));
             services.AddTransient<IUserService, UserService>();
             services.AddTransient<IExerciseService, ExerciseService>();
             services.AddTransient<IDailyWorkoutService, DailyWorkoutService>();
             services.AddTransient<IWeeklyWorkoutService, WeeklyWorkoutService>();
             services.AddTransient<IMonthlyWorkoutService, MonthlyWorkoutService>();
-            
+
+            services.AddApiVersioning( o => 
+                {
+                    o.ApiVersionReader = new HeaderApiVersionReader("api-version");
+                    o.DefaultApiVersion = new ApiVersion(1, 0);
+                    o.AssumeDefaultVersionWhenUnspecified = true;
+                    o.ReportApiVersions = true;
+                });
 
             services.AddIdentity<ApplicationUser, IdentityRole>()
                 .AddEntityFrameworkStores<WorkoutContext>()
@@ -65,7 +78,7 @@ namespace Workoutplaner.Server
         }
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env,
-            ILoggerFactory loggerFactory, WorkoutContext context)
+            ILoggerFactory loggerFactory, WorkoutContext context, ExerciseContext exerciseContext)
         {
             loggerFactory.AddConsole();
 
@@ -91,7 +104,7 @@ namespace Workoutplaner.Server
                 routes.MapRoute(
                 name: "default",
                 template: "{controller=Home}/{action=Index}/{id?}");
-            });            context.Seed();
+            });            exerciseContext.Seed();            //context.Seed();
         }
     }
 }

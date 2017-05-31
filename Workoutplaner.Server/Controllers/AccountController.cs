@@ -12,6 +12,8 @@ using Workoutplaner.Server.Middlewares;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using System.Net;
+using Workoutplaner.Server.Models;
+using Workoutplaner.Server.Services;
 
 namespace Workoutplaner.Server.Controllers
 {
@@ -21,6 +23,7 @@ namespace Workoutplaner.Server.Controllers
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly ILogger _logger;
         private readonly string _externalCookieScheme;
+        
 
         public AccountController(
             UserManager<ApplicationUser> userManager,
@@ -95,5 +98,15 @@ namespace Workoutplaner.Server.Controllers
             return BadRequest();
         }
 
+        // POST: /Account/Logout
+        [HttpPost]
+        public async Task<IActionResult> Logout()
+        {
+            await _signInManager.SignOutAsync();
+            _logger.LogInformation(4, "User logged out.");
+            return Ok();
+        }
+
+        
     }
 }

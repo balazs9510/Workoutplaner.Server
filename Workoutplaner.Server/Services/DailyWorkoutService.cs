@@ -12,9 +12,11 @@ namespace Workoutplaner.Server.Services
     public class DailyWorkoutService : IDailyWorkoutService
     {
         private readonly WorkoutContext _context;
-        public DailyWorkoutService(WorkoutContext context)
+        private readonly ExerciseContext _exerciseContext;
+        public DailyWorkoutService(WorkoutContext context, ExerciseContext exerciseContext)
         {
             _context = context;
+            _exerciseContext = exerciseContext;
         }
 
         public DailyWorkout GetDailyWorkout(int id,ApplicationUser user)
@@ -35,6 +37,8 @@ namespace Workoutplaner.Server.Services
 
         public DailyWorkout InsertDailyWorkout(DailyWorkout newDailyWorkout, ApplicationUser user)
         {
+            if (!IsValidDailyWorkout(newDailyWorkout))
+                throw new NotValidStateException();
             List<ExerciseItem> exercises = new List<ExerciseItem>();
             foreach (var exercise in newDailyWorkout.Exercises)
             {
@@ -46,9 +50,11 @@ namespace Workoutplaner.Server.Services
                     Description = exercise.Description,
                     MuscleGroup = exercise.MuscleGroup
                 };
-                _context.ExerciseItems.Add(exerciseToSave);
+                
+                _exerciseContext.ExerciseItems.Add(exerciseToSave);
                 exercises.Add(exerciseToSave);
             }
+            _exerciseContext.SaveChanges();
             var savedInstance = new DailyWorkout()
             {
                 Name = newDailyWorkout.Name,
@@ -66,10 +72,12 @@ namespace Workoutplaner.Server.Services
 
         public void UpdateDailyWorkout(int id, DailyWorkout updatedDailyWorkout)
         {
-            var current = _context.DailyWorkouts.SingleOrDefault(m => m.Id == updatedDailyWorkout.Id);
+            var current = _context.DailyWorkouts
+                .Include(dw=>dw.Exercises)
+                .SingleOrDefault(m => m.Id == updatedDailyWorkout.Id);
             foreach (var exercise in updatedDailyWorkout.Exercises.ToList())
             {
-                var newexercise = _context.ExerciseItems.SingleOrDefault(m => m.Id == exercise.Id);
+                var newexercise = _exerciseContext.ExerciseItems.SingleOrDefault(m => m.Id == exercise.Id);
                 if (newexercise == null)
                 {
 
@@ -81,13 +89,14 @@ namespace Workoutplaner.Server.Services
                         SerialNumber = exercise.SerialNumber,
                         MuscleGroup = exercise.MuscleGroup
                     };
-                    _context.ExerciseItems.Add(newElem);
+                    _exerciseContext.ExerciseItems.Add(newElem);
                     current.Exercises.Add(newElem);
                 }
             }
             current.Name = updatedDailyWorkout.Name;
             try
             {
+                _exerciseContext.SaveChanges();
                 _context.SaveChanges();
             }
             catch (DbUpdateConcurrencyException e)
@@ -99,6 +108,7 @@ namespace Workoutplaner.Server.Services
                 throw;
             }
         }
+
         public void DeleteDailyWorkout(int id, ApplicationUser user)
         {
             var weeklyWorkout =  _context.WeeklyWorkouts.Where(
@@ -117,7 +127,7 @@ namespace Workoutplaner.Server.Services
                     .SingleOrDefault(p => p.Id == id);
                 foreach (var exerciseItem in deleteInstance.Exercises)
                 {
-                    _context.ExerciseItems.Remove(exerciseItem);
+                    _exerciseContext.ExerciseItems.Remove(exerciseItem);
                 }
                 user.DailyWorkouts.Remove(deleteInstance);
                 _context.DailyWorkouts.Remove(deleteInstance);
@@ -125,6 +135,7 @@ namespace Workoutplaner.Server.Services
             else throw new EntityCannotDeleteException();
             try
             {
+                _exerciseContext.SaveChanges();
                 _context.SaveChanges();
             }
             catch (DbUpdateConcurrencyException)
@@ -136,6 +147,13 @@ namespace Workoutplaner.Server.Services
             }
         }
 
-       
+        public bool IsValidDailyWorkout(DailyWorkout dw)
+        {
+            if (dw.Exercises == null)
+                return false;
+            return dw.Name.Length > 3 && 
+                dw.Exercises.ToList().Count > 0;
+        }
+      
     }
 }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Workoutplaner.Server.Models;
 using Workoutplaner.Server.Models.Identity;
 
 namespace Workoutplaner.Server.Services
@@ -9,5 +10,6 @@ namespace Workoutplaner.Server.Services
     public interface IUserService
     {
         ApplicationUser Get(string id);
+        void InsertDoneWorkout(DoneDailyWorkout newWorkout, ApplicationUser user);
     }
 }

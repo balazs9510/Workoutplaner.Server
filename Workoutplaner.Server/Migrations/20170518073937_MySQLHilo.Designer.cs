@@ -9,12 +9,14 @@ using Workoutplaner.Server.Models;
 namespace Workoutplaner.Server.Migrations
 {
     [DbContext(typeof(WorkoutContext))]
-    partial class WorkoutContextModelSnapshot : ModelSnapshot
+    [Migration("20170518073937_MySQLHilo")]
+    partial class MySQLHilo
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
             modelBuilder
-                .HasAnnotation("ProductVersion", "1.1.2");
+                .HasAnnotation("ProductVersion", "1.1.2")
+                .HasAnnotation("SqlServer:Sequence:.EntityFrameworkHiLoSequence", "'EntityFrameworkHiLoSequence', '', '1', '10', '', '', 'Int64', 'False'");
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.EntityFrameworkCore.IdentityRole", b =>
                 {
@@ -123,10 +125,12 @@ namespace Workoutplaner.Server.Migrations
                     b.ToTable("AspNetUserTokens");
                 });
 
-            modelBuilder.Entity("Workoutplaner.Server.Models.BaseWorkout", b =>
+            modelBuilder.Entity("Workoutplaner.Server.Models.DailyWorkout", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd();
+
+                    b.Property<string>("ApplicationUserId");
 
                     b.Property<string>("Name");
 
@@ -134,63 +138,34 @@ namespace Workoutplaner.Server.Migrations
 
                     b.Property<int>("WorkoutType");
 
-                    b.Property<string>("Workout_Type")
-                        .IsRequired();
-
                     b.HasKey("Id");
-
-                    b.ToTable("BaseWorkout");
-
-                    b.HasDiscriminator<string>("Workout_Type").HasValue("BaseWorkout");
-                });
-
-            modelBuilder.Entity("Workoutplaner.Server.Models.DoneDailyWorkout", b =>
-                {
-                    b.Property<DateTime>("Date");
-
-                    b.Property<string>("UserId");
-
-                    b.Property<string>("ApplicationUserId");
-
-                    b.Property<string>("ApplicationUserId1");
-
-                    b.Property<int?>("DonedWorkoutId");
-
-                    b.Property<double>("LastInMinute");
-
-                    b.HasKey("Date", "UserId");
 
                     b.HasIndex("ApplicationUserId");
 
-                    b.HasIndex("ApplicationUserId1");
-
-                    b.HasIndex("DonedWorkoutId");
-
-                    b.ToTable("DonedDailyWorkouts");
+                    b.ToTable("DailyWorkouts");
                 });
 
-            modelBuilder.Entity("Workoutplaner.Server.Models.ExerciseItem", b =>
+            modelBuilder.Entity("Workoutplaner.Server.Models.Exercise", b =>
                 {
                     b.Property<int>("Id")
-                        .ValueGeneratedOnAdd();
-
-                    b.Property<int?>("DailyWorkoutId");
+                        .ValueGeneratedOnAdd()
+                        .HasAnnotation("SqlServer:HiLoSequenceName", "EntityFrameworkHiLoSequence")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.SequenceHiLo);
 
                     b.Property<string>("Description");
+
+                    b.Property<string>("Discriminator")
+                        .IsRequired();
 
                     b.Property<string>("MuscleGroup");
 
                     b.Property<string>("Name");
 
-                    b.Property<int>("Reps");
-
-                    b.Property<int>("SerialNumber");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("DailyWorkoutId");
+                    b.ToTable("Exercises");
 
-                    b.ToTable("ExerciseItem");
+                    b.HasDiscriminator<string>("Discriminator").HasValue("Exercise");
                 });
 
             modelBuilder.Entity("Workoutplaner.Server.Models.Identity.ApplicationUser", b =>
@@ -240,30 +215,19 @@ namespace Workoutplaner.Server.Migrations
                         .IsUnique()
                         .HasName("UserNameIndex");
 
-                    b.HasIndex("UserName")
-                        .IsUnique();
-
                     b.ToTable("AspNetUsers");
-                });
-
-            modelBuilder.Entity("Workoutplaner.Server.Models.DailyWorkout", b =>
-                {
-                    b.HasBaseType("Workoutplaner.Server.Models.BaseWorkout");
-
-                    b.Property<string>("ApplicationUserId");
-
-                    b.HasIndex("ApplicationUserId");
-
-                    b.ToTable("DailyWorkout");
-
-                    b.HasDiscriminator().HasValue("Daily");
                 });
 
             modelBuilder.Entity("Workoutplaner.Server.Models.MonthlyWorkout", b =>
                 {
-                    b.HasBaseType("Workoutplaner.Server.Models.BaseWorkout");
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd();
 
                     b.Property<string>("ApplicationUserId");
+
+                    b.Property<string>("Name");
+
+                    b.Property<string>("UserID");
 
                     b.Property<int?>("WeekFourId");
 
@@ -272,6 +236,10 @@ namespace Workoutplaner.Server.Migrations
                     b.Property<int?>("WeekThreeId");
 
                     b.Property<int?>("WeekTwoId");
+
+                    b.Property<int>("WorkoutType");
+
+                    b.HasKey("Id");
 
                     b.HasIndex("ApplicationUserId");
 
@@ -283,14 +251,13 @@ namespace Workoutplaner.Server.Migrations
 
                     b.HasIndex("WeekTwoId");
 
-                    b.ToTable("MonthlyWorkout");
-
-                    b.HasDiscriminator().HasValue("Monthly");
+                    b.ToTable("MonthlyWorkouts");
                 });
 
             modelBuilder.Entity("Workoutplaner.Server.Models.WeeklyWorkout", b =>
                 {
-                    b.HasBaseType("Workoutplaner.Server.Models.BaseWorkout");
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd();
 
                     b.Property<string>("ApplicationUserId");
 
@@ -308,6 +275,14 @@ namespace Workoutplaner.Server.Migrations
 
                     b.Property<int?>("DayTwoId");
 
+                    b.Property<string>("Name");
+
+                    b.Property<string>("UserID");
+
+                    b.Property<int>("WorkoutType");
+
+                    b.HasKey("Id");
+
                     b.HasIndex("ApplicationUserId");
 
                     b.HasIndex("DayFiveId");
@@ -324,9 +299,24 @@ namespace Workoutplaner.Server.Migrations
 
                     b.HasIndex("DayTwoId");
 
-                    b.ToTable("WeeklyWorkout");
+                    b.ToTable("WeeklyWorkouts");
+                });
 
-                    b.HasDiscriminator().HasValue("Weekly");
+            modelBuilder.Entity("Workoutplaner.Server.Models.ExerciseItem", b =>
+                {
+                    b.HasBaseType("Workoutplaner.Server.Models.Exercise");
+
+                    b.Property<int?>("DailyWorkoutId");
+
+                    b.Property<int>("Reps");
+
+                    b.Property<int>("SerialNumber");
+
+                    b.HasIndex("DailyWorkoutId");
+
+                    b.ToTable("ExerciseItem");
+
+                    b.HasDiscriminator().HasValue("ExerciseItem");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.EntityFrameworkCore.IdentityRoleClaim<string>", b =>
@@ -364,28 +354,6 @@ namespace Workoutplaner.Server.Migrations
                         .WithMany("Roles")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade);
-                });
-
-            modelBuilder.Entity("Workoutplaner.Server.Models.DoneDailyWorkout", b =>
-                {
-                    b.HasOne("Workoutplaner.Server.Models.Identity.ApplicationUser")
-                        .WithMany("DonedDailyWorkouts")
-                        .HasForeignKey("ApplicationUserId");
-
-                    b.HasOne("Workoutplaner.Server.Models.Identity.ApplicationUser")
-                        .WithMany()
-                        .HasForeignKey("ApplicationUserId1");
-
-                    b.HasOne("Workoutplaner.Server.Models.DailyWorkout", "DonedWorkout")
-                        .WithMany()
-                        .HasForeignKey("DonedWorkoutId");
-                });
-
-            modelBuilder.Entity("Workoutplaner.Server.Models.ExerciseItem", b =>
-                {
-                    b.HasOne("Workoutplaner.Server.Models.DailyWorkout")
-                        .WithMany("Exercises")
-                        .HasForeignKey("DailyWorkoutId");
                 });
 
             modelBuilder.Entity("Workoutplaner.Server.Models.DailyWorkout", b =>
@@ -451,6 +419,13 @@ namespace Workoutplaner.Server.Migrations
                     b.HasOne("Workoutplaner.Server.Models.DailyWorkout", "DayTwo")
                         .WithMany()
                         .HasForeignKey("DayTwoId");
+                });
+
+            modelBuilder.Entity("Workoutplaner.Server.Models.ExerciseItem", b =>
+                {
+                    b.HasOne("Workoutplaner.Server.Models.DailyWorkout")
+                        .WithMany("Exercises")
+                        .HasForeignKey("DailyWorkoutId");
                 });
         }
     }

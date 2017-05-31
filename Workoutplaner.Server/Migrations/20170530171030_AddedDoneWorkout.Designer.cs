@@ -9,9 +9,10 @@ using Workoutplaner.Server.Models;
 namespace Workoutplaner.Server.Migrations
 {
     [DbContext(typeof(WorkoutContext))]
-    partial class WorkoutContextModelSnapshot : ModelSnapshot
+    [Migration("20170530171030_AddedDoneWorkout")]
+    partial class AddedDoneWorkout
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
             modelBuilder
                 .HasAnnotation("ProductVersion", "1.1.2");
@@ -148,21 +149,17 @@ namespace Workoutplaner.Server.Migrations
                 {
                     b.Property<DateTime>("Date");
 
-                    b.Property<string>("UserId");
-
                     b.Property<string>("ApplicationUserId");
-
-                    b.Property<string>("ApplicationUserId1");
 
                     b.Property<int?>("DonedWorkoutId");
 
                     b.Property<double>("LastInMinute");
 
-                    b.HasKey("Date", "UserId");
+                    b.Property<string>("UserId");
+
+                    b.HasKey("Date");
 
                     b.HasIndex("ApplicationUserId");
-
-                    b.HasIndex("ApplicationUserId1");
 
                     b.HasIndex("DonedWorkoutId");
 
@@ -371,10 +368,6 @@ namespace Workoutplaner.Server.Migrations
                     b.HasOne("Workoutplaner.Server.Models.Identity.ApplicationUser")
                         .WithMany("DonedDailyWorkouts")
                         .HasForeignKey("ApplicationUserId");
-
-                    b.HasOne("Workoutplaner.Server.Models.Identity.ApplicationUser")
-                        .WithMany()
-                        .HasForeignKey("ApplicationUserId1");
 
                     b.HasOne("Workoutplaner.Server.Models.DailyWorkout", "DonedWorkout")
                         .WithMany()

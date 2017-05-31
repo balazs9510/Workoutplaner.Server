@@ -16,6 +16,8 @@ namespace Workoutplaner.Server.Controllers
 {
     [Produces("application/json")]
     [Route("api/DailyWorkouts")]
+    [ApiVersion("1.0")]
+    [ApiVersion("2.0")]
     public class DailyWorkoutsController : BaseController
     {
         private readonly IDailyWorkoutService _dailyWorkoutService;

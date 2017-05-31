@@ -16,7 +16,7 @@ namespace Workoutplaner.Server.Controllers
     {
         private readonly UserManager<ApplicationUser> _userManager;
         protected ApplicationUser _user;
-        private readonly WorkoutContext _context;
+        protected readonly WorkoutContext _context;
         private readonly IHttpContextAccessor _httpContextAccessor;
         public BaseController(UserManager<ApplicationUser> userManager,
             IHttpContextAccessor accessor,
@@ -26,6 +26,7 @@ namespace Workoutplaner.Server.Controllers
             _httpContextAccessor = accessor;
             _context = cotnext;
             _user = _context.Users
+                .Include(u=>u.DonedDailyWorkouts)
                 .Include(u=>u.DailyWorkouts)
                 .Include(u => u.MonthlyWorkouts)
                 .Include(u => u.WeeklyWorkouts)

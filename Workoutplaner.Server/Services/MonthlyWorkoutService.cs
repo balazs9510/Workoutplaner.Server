@@ -59,7 +59,7 @@ namespace Workoutplaner.Server.Services
 
             _context.SaveChanges();
 
-            return newMonthlyWorkout;
+            return saveInstance;
         }
 
         public void UpdateMonthlyWorkout(int id, MonthlyWorkout updatedMonthlyWorkout)

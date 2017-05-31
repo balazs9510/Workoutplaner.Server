@@ -9,5 +9,7 @@ namespace Workoutplaner.Server.Services
     public interface IExerciseService
     {
         IEnumerable<Exercise> GetExercises();
+        IEnumerable<Exercise> GetExercisesByMuscleGroup(string muscleGrup);
+        int InsertExercise(Exercise exercise);
     }
 }

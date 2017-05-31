@@ -14,6 +14,8 @@ namespace Workoutplaner.Server.Controllers
 {
     [Produces("application/json")]
     [Route("api/MonthlyWorkouts")]
+    [ApiVersion("1.0")]
+    [ApiVersion("2.0")]
     public class MonthlyWorkoutsController : BaseController
     {
         private readonly IMonthlyWorkoutService _monthlyWorkoutService;

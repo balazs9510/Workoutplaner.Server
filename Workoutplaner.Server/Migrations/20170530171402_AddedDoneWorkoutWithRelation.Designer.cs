@@ -9,9 +9,10 @@ using Workoutplaner.Server.Models;
 namespace Workoutplaner.Server.Migrations
 {
     [DbContext(typeof(WorkoutContext))]
-    partial class WorkoutContextModelSnapshot : ModelSnapshot
+    [Migration("20170530171402_AddedDoneWorkoutWithRelation")]
+    partial class AddedDoneWorkoutWithRelation
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
             modelBuilder
                 .HasAnnotation("ProductVersion", "1.1.2");
@@ -148,8 +149,6 @@ namespace Workoutplaner.Server.Migrations
                 {
                     b.Property<DateTime>("Date");
 
-                    b.Property<string>("UserId");
-
                     b.Property<string>("ApplicationUserId");
 
                     b.Property<string>("ApplicationUserId1");
@@ -158,7 +157,9 @@ namespace Workoutplaner.Server.Migrations
 
                     b.Property<double>("LastInMinute");
 
-                    b.HasKey("Date", "UserId");
+                    b.Property<string>("UserId");
+
+                    b.HasKey("Date");
 
                     b.HasIndex("ApplicationUserId");
 

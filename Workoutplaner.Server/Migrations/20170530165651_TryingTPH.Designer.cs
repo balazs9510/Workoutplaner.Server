@@ -9,9 +9,10 @@ using Workoutplaner.Server.Models;
 namespace Workoutplaner.Server.Migrations
 {
     [DbContext(typeof(WorkoutContext))]
-    partial class WorkoutContextModelSnapshot : ModelSnapshot
+    [Migration("20170530165651_TryingTPH")]
+    partial class TryingTPH
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
             modelBuilder
                 .HasAnnotation("ProductVersion", "1.1.2");
@@ -142,31 +143,6 @@ namespace Workoutplaner.Server.Migrations
                     b.ToTable("BaseWorkout");
 
                     b.HasDiscriminator<string>("Workout_Type").HasValue("BaseWorkout");
-                });
-
-            modelBuilder.Entity("Workoutplaner.Server.Models.DoneDailyWorkout", b =>
-                {
-                    b.Property<DateTime>("Date");
-
-                    b.Property<string>("UserId");
-
-                    b.Property<string>("ApplicationUserId");
-
-                    b.Property<string>("ApplicationUserId1");
-
-                    b.Property<int?>("DonedWorkoutId");
-
-                    b.Property<double>("LastInMinute");
-
-                    b.HasKey("Date", "UserId");
-
-                    b.HasIndex("ApplicationUserId");
-
-                    b.HasIndex("ApplicationUserId1");
-
-                    b.HasIndex("DonedWorkoutId");
-
-                    b.ToTable("DonedDailyWorkouts");
                 });
 
             modelBuilder.Entity("Workoutplaner.Server.Models.ExerciseItem", b =>
@@ -364,21 +340,6 @@ namespace Workoutplaner.Server.Migrations
                         .WithMany("Roles")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade);
-                });
-
-            modelBuilder.Entity("Workoutplaner.Server.Models.DoneDailyWorkout", b =>
-                {
-                    b.HasOne("Workoutplaner.Server.Models.Identity.ApplicationUser")
-                        .WithMany("DonedDailyWorkouts")
-                        .HasForeignKey("ApplicationUserId");
-
-                    b.HasOne("Workoutplaner.Server.Models.Identity.ApplicationUser")
-                        .WithMany()
-                        .HasForeignKey("ApplicationUserId1");
-
-                    b.HasOne("Workoutplaner.Server.Models.DailyWorkout", "DonedWorkout")
-                        .WithMany()
-                        .HasForeignKey("DonedWorkoutId");
                 });
 
             modelBuilder.Entity("Workoutplaner.Server.Models.ExerciseItem", b =>

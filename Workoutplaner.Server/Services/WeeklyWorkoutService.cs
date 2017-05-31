@@ -52,7 +52,7 @@ namespace Workoutplaner.Server.Services
         {
             var toSave = new WeeklyWorkout()
             {
-                Name =newWeeklyWorkout.Name,
+                Name = newWeeklyWorkout.Name,
 
                 WorkoutType = Models.Type.Weekly
             };
@@ -60,7 +60,7 @@ namespace Workoutplaner.Server.Services
             user.WeeklyWorkouts.Add(toSave);
             _context.WeeklyWorkouts.Add(toSave);
             toSave.DayOne = _context.DailyWorkouts
-                .Where(m => m.Id ==newWeeklyWorkout.DayOne.Id).SingleOrDefault();
+                .Where(m => m.Id == newWeeklyWorkout.DayOne.Id).SingleOrDefault();
             toSave.DayTwo = _context.DailyWorkouts
                 .Where(m => m.Id ==newWeeklyWorkout.DayTwo.Id).SingleOrDefault();
             toSave.DayThree = _context.DailyWorkouts
@@ -76,7 +76,7 @@ namespace Workoutplaner.Server.Services
 
             _context.SaveChanges();
 
-            return newWeeklyWorkout;
+            return toSave;
         }
 
         public void UpdateWeeklyWorkout(int id,
@@ -85,7 +85,7 @@ namespace Workoutplaner.Server.Services
             
             _context.Entry(updatedWeeklyWorkout).State = EntityState.Modified;
             var saveInstace = _context.WeeklyWorkouts.SingleOrDefault(m => m.Id == updatedWeeklyWorkout.Id);
-
+            saveInstace.Name = updatedWeeklyWorkout.Name;
             saveInstace
                 .DayOne = _context.DailyWorkouts.SingleOrDefault(p=>p.Id == updatedWeeklyWorkout.DayOne.Id);
             saveInstace.DayTwo =   _context.DailyWorkouts.SingleOrDefault(p=>p.Id == updatedWeeklyWorkout.DayTwo.Id);

@@ -11,6 +11,8 @@ namespace Workoutplaner.Server.Controllers
 {
     [Produces("application/json")]
     [Route("api/Exercises")]
+    [ApiVersion("1.0")]
+    [ApiVersion("2.0")]
     public class ExercisesController : Controller
     {
         private readonly IExerciseService _exerciseService;
@@ -23,6 +25,12 @@ namespace Workoutplaner.Server.Controllers
         public IActionResult Get()
         {
             return Ok(_exerciseService.GetExercises());
+        }
+        [HttpPost,MapToApiVersion("2.0")]
+        public IActionResult Post([FromBody] Exercise e)
+        {
+            _exerciseService.InsertExercise(e);
+            return Ok();
         }
 
     }
